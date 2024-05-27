@@ -3,10 +3,12 @@ import { SubmitHandler, useForm } from "react-hook-form"
 type FormFields = {
   email: string,
   password: string
-}
+};
+
 const App = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormFields>();
-  const onSubmit: SubmitHandler<FormFields> = (data) => {
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormFields>();
+  const onSubmit: SubmitHandler<FormFields> = async(data) => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));// Here just awaiting an empty promise for testing purpose
     console.log(data);
   }
   return (
@@ -14,8 +16,13 @@ const App = () => {
       <div>
         <input
           {...register('email', {
-            required: 'Email must include @',
-            validate: (value) => value.includes('@')
+            required: 'Email is required',
+            validate: (value) => {
+              if(!value.includes('@')){
+                return 'Email must include @'
+              }
+              return true;
+            }
           })}
           type="text"
           placeholder="Email"
@@ -25,15 +32,18 @@ const App = () => {
       <div>
         <input
           {...register('password', {
-            required: 'Password length should be > 8',
-            minLength: 8,
+            required: 'Password is required',
+            minLength: {
+              value: 8,
+              message: 'Password length must be > 8'
+            },
           })}
           type="password"
           placeholder="Password"
           />
           {errors.password && <div style={{color: 'red'}}>{errors.password.message}</div>}
       </div>
-      <button type="submit">Submit</button>
+      <button type="submit">{isSubmitting ? 'Loading...' : 'Submit'}</button>
     </form>
   )
 }
