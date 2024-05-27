@@ -1,40 +1,37 @@
 import { SubmitHandler, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
-type FormFields = {
-  email: string,
-  password: string
-};
+const schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8)
+})
+
+type FormFields = z.infer<typeof schema>
 
 const App = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting }, setError } = useForm<FormFields>({
     defaultValues: {
       email: 'test@email.com',
-    }
+    },
+    resolver: zodResolver(schema),
   });
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000));// Here just awaiting an empty promise for testing purpose
-      throw new Error();// Empty Error thrown for testing
+      // throw new Error();// Empty Error thrown for testing
+      console.log(data);
     } catch (error) {
       setError('root', {
         message: 'Email already exist'
       })
     }
-    console.log(data);
   }
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div>
         <input
-          {...register('email', {
-            required: 'Email is required',
-            validate: (value) => {
-              if (!value.includes('@')) {
-                return 'Email must include @'
-              }
-              return true;
-            }
-          })}
+          {...register('email')}
           type="text"
           placeholder="Email"
         />
@@ -42,13 +39,7 @@ const App = () => {
       </div>
       <div>
         <input
-          {...register('password', {
-            required: 'Password is required',
-            minLength: {
-              value: 8,
-              message: 'Password length must be > 8'
-            },
-          })}
+          {...register('password')}
           type="password"
           placeholder="Password"
         />
